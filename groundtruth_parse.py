@@ -8,14 +8,14 @@ from digTableExtractor.table_ext_helper import table_decompose
 from digExtractor.extractor_processor import ExtractorProcessor
 
 path = '../'
-groundtruth = path + 'sample_nyu_10.jl'
-#groundtruth = path + 'nyu-ddindex-fall2016qpr-cdr-deduped.jl'
+#groundtruth = path + 'sample_nyu_10.jl'
+groundtruth = path + 'nyu-ddindex-fall2016qpr-cdr-deduped.jl'
 #groundtruth = path + 'pedro/gt_ads_nov_aa.jl'
 
 #file_out = path + 'sample_output.txt'
 #file_out = path + 'tables_sample3.txt'
-file_out = path + 'tables_sample3.html'
-#file_out = path + 'table_extractions_1000_nyu_re_col.html'
+#file_out = path + 'tables_sample3.html'
+file_out = path + 'table_extractions_1000_nyu_re_col.html'
 
 # Computes mean of a list of numbers
 def mean(numbers):
@@ -68,6 +68,7 @@ def output_complement_html(file_in, file_out):
 
 #Output tables as html
 def output_tables(file_in, file_out):
+	f = open(file_in, 'r')
 	outfile = open(file_out, 'wb')
 
 	style = """<head>
@@ -119,6 +120,7 @@ def output_tables(file_in, file_out):
 			len_row = 0
 			rows = table["rows"]
 			table_data = ""
+			outfile.write("CDR: " + line['_id'] + "<br>")
 			outfile.write('<table>\n')
 			#outfile.write('<tr><td> No. of rows: ' + str(len(rows)) + "</td></tr>")
 			for row in rows:
@@ -181,7 +183,9 @@ def output_tables(file_in, file_out):
 					h_index = 0
 					h_bool = True
 					for col in row.findAll('th'):
-						col_content = col.string
+						col_content = ""
+						for string in col.stripped_strings:
+							col_content += string
 						h_bool = False
 						if col_content is None:
 							continue
@@ -192,8 +196,11 @@ def output_tables(file_in, file_out):
 					if(h_index == 0 and h_bool == False):
 						d_index = 1
 					for col in row.findAll('td'):
-						col_content = col.string
+						col_content = ""
+						for string in col.stripped_strings:
+							col_content += string
 						if col_content is None:
+							d_index += 1
 							continue
 						else:
 							col_data['c_{0}'.format(d_index)].append(col_content)
@@ -202,6 +209,9 @@ def output_tables(file_in, file_out):
 				for key, value in col_data.iteritems():
 					outfile.write("Column " + str(key) + " average len: {0:.2f}".format(mean([len(x) for x in value])) + '<br>')
 					outfile.write("Column " + str(key) + " contains num: {0}".format(contains_digits(''.join(value))) + '<br>')
+					outfile.write("Column " + str(key) + " is only numbers: {0}".format(''.join(value).isdigit()) + '<br>')
+					outfile.write("Column " + str(key) + " is empty: {0}".format(''.join(value) == '') + '<br>')
+
 
 			outfile.write("</table>")
 			outfile.write("<hr><hr>")
