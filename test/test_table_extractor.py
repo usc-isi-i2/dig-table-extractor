@@ -24,6 +24,7 @@ class TestTableExtractor(unittest.TestCase):
                                  .set_output_field('extracted')\
                                  .set_extractor(e)
         updated_doc = ep.extract(doc)
+        #print updated_doc['extracted'][0]['value']
         self.assertEquals(str(updated_doc['extracted'][0]['value']),
                           dig_text)
 
