@@ -9,9 +9,8 @@ def is_data_cell(cell):
 def is_data_row(row):
 	if(row.table):
 		return False
-	cell = row.findAll('td', recursive=False)
-	if cell is None:
-		cell = row.findAll('th', recursive=False)
+	cell = row.findAll('th', recursive=False)
+	cell.extend(row.findAll('td', recursive=False))
 	for td in cell:
 		if(is_data_cell(td) == False):
 			return False
@@ -20,6 +19,10 @@ def is_data_row(row):
 def get_data_rows(table):
 	data_rows = []
 	rows = table.findAll('tr', recursive=False)
+	if(table.thead):
+		rows.extend(table.thead.findAll('tr', recursive=False))
+	if(table.tbody):
+		rows.extend(table.tbody.findAll('tr', recursive=False))
 	for tr in rows:
 		if(is_data_row(tr)):
 			data_rows.append(str(tr))
@@ -83,7 +86,7 @@ def table_extract(html_doc):
 			table_data = ""
 			data_table = {}
 			row_list = []
-			rows = is_data_table(table, 2)
+			rows = is_data_table(table, 1)
 			if(rows != False):
 				features = {}
 				for row in rows:
@@ -106,6 +109,11 @@ def table_extract(html_doc):
 						table_data += row
 						# row_dict["row"] = str(row)
 						cell_list = []
+						for td in soup_row.findAll('th'):
+							cell_dict = {}
+							cell_dict["cell"] = str(td)
+							cell_dict["text"] = [{"result": {"value": ''.join(td.stripped_strings)}}]
+							cell_list.append(cell_dict)
 						for td in soup_row.findAll('td'):
 							cell_dict = {}
 							cell_dict["cell"] = str(td)

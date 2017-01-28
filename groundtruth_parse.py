@@ -15,7 +15,7 @@ groundtruth = path + 'sample_nyu_10.jl'
 #file_out = path + 'sample_output.txt'
 #file_out = path + 'tables_sample3.txt'
 file_out = path + 'tables_sample4.html'
-#file_out = path + 'table_extractions_1000_nyu_re_col.html'
+#file_out = path + 'table_extractions_1000_nyu_re_col_new.html'
 #file_out = path + 'table_extractions_gt_ads_nov_ab.html'
 
 # Computes mean of a list of numbers
