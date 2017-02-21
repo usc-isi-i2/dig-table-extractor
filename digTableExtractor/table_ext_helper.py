@@ -122,6 +122,7 @@ def table_extract(html_doc):
 						row_dict["cells"] = cell_list
 						row_list.append(row_dict)
 
+				# To avoid division by zero
 				if len_row == 0:
 					tdcount = 1
 				features["no_of_rows"] = len_row
@@ -134,7 +135,7 @@ def table_extract(html_doc):
 				features["ratio_of_colspan_tags_to_cells"] = colspan_count*1.0/tdcount
 				features["ratio_of_colons_to_cells"] = colon_count*1.0/tdcount
 
-				avg_col_len = 0
+				avg_cell_len = 0
 				no_of_cols_containing_num = 0
 				no_of_cols_empty = 0
 
@@ -167,14 +168,16 @@ def table_extract(html_doc):
 								col_data['c_{0}'.format(d_index)].append(col_content)
 							d_index += 1
 
-					print col_data
 					for key, value in col_data.iteritems():
 						whole_col = ''.join(value)
-						avg_col_len += float("%.2f" % mean([len(x) for x in value]))
+						avg_cell_len += float("%.2f" % mean([len(x) for x in value]))
 						no_of_cols_containing_num += 1 if contains_digits(whole_col) is True else 0
 						# features["column_" + str(key) + "_is_only_num"] = whole_col.isdigit()
 						no_of_cols_empty += 1 if (whole_col == '') is True else 0
-				features["avg_col_len"] = avg_col_len*1.0/max_tdcount
+				# To avoid division by zero
+				if max_tdcount == 0:
+					max_tdcount = 1
+				features["avg_cell_len"] = avg_cell_len*1.0/max_tdcount
 				features["no_of_cols_containing_num"] = no_of_cols_containing_num
 				features["no_of_cols_empty"] = no_of_cols_empty
 				data_table["features"] = features
