@@ -133,6 +133,12 @@ def table_extract(html_doc):
 				features["ratio_of_select_tags_to_cells"] = sel_count*1.0/tdcount
 				features["ratio_of_colspan_tags_to_cells"] = colspan_count*1.0/tdcount
 				features["ratio_of_colons_to_cells"] = colon_count*1.0/tdcount
+
+				avg_col_len = 0
+				no_of_cols_containing_num = 0
+				no_of_cols_empty = 0
+
+
 				if(colspan_count == 0.0 and len_row != 0 and (tdcount/(len_row * 1.0)) == max_tdcount):
 					col_data = {}
 					for i in range(max_tdcount):
@@ -150,7 +156,7 @@ def table_extract(html_doc):
 								col_data['c_{0}'.format(h_index)].append(col_content)
 							h_index += 1
 						d_index = 0
-						if(h_index == 0 and h_bool == False):
+						if(h_index == 1 and h_bool == False):
 							d_index = 1
 						for col in row.findAll('td'):
 							col_content = ''.join(col.stripped_strings)
@@ -161,12 +167,16 @@ def table_extract(html_doc):
 								col_data['c_{0}'.format(d_index)].append(col_content)
 							d_index += 1
 
+					print col_data
 					for key, value in col_data.iteritems():
 						whole_col = ''.join(value)
-						features["column_" + str(key) + "_average_len"] = float("%.2f" % mean([len(x) for x in value]))
-						features["column_" + str(key) + "_contains_num"] = contains_digits(whole_col)
-						features["column_" + str(key) + "_is_only_num"] = whole_col.isdigit()
-						features["column_" + str(key) + "_is_empty"] = (whole_col == '')
+						avg_col_len += float("%.2f" % mean([len(x) for x in value]))
+						no_of_cols_containing_num += 1 if contains_digits(whole_col) is True else 0
+						# features["column_" + str(key) + "_is_only_num"] = whole_col.isdigit()
+						no_of_cols_empty += 1 if (whole_col == '') is True else 0
+				features["avg_col_len"] = avg_col_len*1.0/max_tdcount
+				features["no_of_cols_containing_num"] = no_of_cols_containing_num
+				features["no_of_cols_empty"] = no_of_cols_empty
 				data_table["features"] = features
 				data_table["rows"] = row_list
 				dict["tables"].append(data_table)

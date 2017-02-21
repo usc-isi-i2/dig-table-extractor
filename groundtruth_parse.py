@@ -8,15 +8,17 @@ from digTableExtractor.table_ext_helper import table_decompose
 from digExtractor.extractor_processor import ExtractorProcessor
 
 path = '../'
-groundtruth = path + 'sample_nyu_10.jl'
+#groundtruth = path + 'sample_nyu_10.jl'
 #groundtruth = path + 'nyu-ddindex-fall2016qpr-cdr-deduped.jl'
-#groundtruth = path + 'pedro/gt_ads_nov_ab.jl'
+groundtruth = path + 'pedro/gt_ads_nov_ab.jl'
+#groundtruth = path + 'soccer_tables.jl'
 
 #file_out = path + 'sample_output.txt'
 #file_out = path + 'tables_sample3.txt'
-file_out = path + 'tables_sample4.html'
+#file_out = path + 'tables_sample4.html'
 #file_out = path + 'table_extractions_1000_nyu_re_col_new.html'
-#file_out = path + 'table_extractions_gt_ads_nov_ab.html'
+file_out = path + 'table_extractions_gt_ads_nov_ab_new.html'
+#file_out = path + 'table_extractions_soccer.html'
 
 # Computes mean of a list of numbers
 def mean(numbers):
