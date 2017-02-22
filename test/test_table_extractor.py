@@ -27,6 +27,7 @@ class TestTableExtractor(unittest.TestCase):
         updated_doc = ep.extract(doc)
         # with open("dig_out.txt", "w") as f:
         #     f.write(json.dumps(updated_doc['extracted'][0]['value']))
+        # print updated_doc['extracted'][0]['value']
         self.assertEquals(str(updated_doc['extracted'][0]['value']),
                           dig_text)
 

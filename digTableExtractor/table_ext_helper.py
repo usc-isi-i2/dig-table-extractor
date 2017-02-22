@@ -54,14 +54,30 @@ def is_data_table(table, k):
 
 
 
-# Computes mean of a list of numbers
 def mean(numbers):
-    return float(sum(numbers)) / max(len(numbers), 1)
+	""" Computes mean of a list of numbers """
+	return float(sum(numbers)) / max(len(numbers), 1)
+
+def _ss(data):
+	"""Return sum of square deviations of sequence data."""
+	c = mean(data)
+	ss = sum((x-c)**2 for x in data)
+	return ss
+
+def pstdev(data):
+	"""Calculates the population standard deviation."""
+	n = len(data)
+	if n < 2:
+		return 0
+		# raise ValueError('variance requires at least two data points')
+	ss = _ss(data)
+	pvar = ss/n # the population variance
+	return pvar**0.5
 
 # Check if a string contains a digit
 _digits = re.compile('\d')
 def contains_digits(d):
-    return bool(_digits.search(d))
+	return bool(_digits.search(d))
 
 
 def table_extract(html_doc):
@@ -89,12 +105,16 @@ def table_extract(html_doc):
 			rows = is_data_table(table, 1)
 			if(rows != False):
 				features = {}
+				row_len_list = []
+				avg_cell_len = 0
+				avg_row_len_dev = 0
 				for row in rows:
 					row_dict = {}
 					soup_row = BeautifulSoup(row, 'html.parser')
 					row_data = ''.join(soup_row.stripped_strings)
 					row_data = row_data.replace("\\t", "").replace("\\r", "").replace("\\n", "")
 					if row_data != '':
+						row_len_list.append(len(row_data))
 						row_tdcount = len(soup_row.findAll('td')) + len(soup_row.findAll('th'))
 						if(row_tdcount > max_tdcount):
 							max_tdcount = row_tdcount
@@ -113,12 +133,15 @@ def table_extract(html_doc):
 							cell_dict = {}
 							cell_dict["cell"] = str(td)
 							cell_dict["text"] = [{"result": {"value": ''.join(td.stripped_strings)}}]
+							avg_cell_len += len(cell_dict["text"][0]["result"]["value"])
 							cell_list.append(cell_dict)
 						for td in soup_row.findAll('td'):
 							cell_dict = {}
 							cell_dict["cell"] = str(td)
 							cell_dict["text"] = [{"result": {"value": ''.join(td.stripped_strings)}}]
+							avg_cell_len += len(cell_dict["text"][0]["result"]["value"])
 							cell_list.append(cell_dict)
+						avg_row_len_dev += pstdev([len(x["text"][0]["result"]["value"]) for x in cell_list])
 						row_dict["cells"] = cell_list
 						row_list.append(row_dict)
 
@@ -134,8 +157,12 @@ def table_extract(html_doc):
 				features["ratio_of_select_tags_to_cells"] = sel_count*1.0/tdcount
 				features["ratio_of_colspan_tags_to_cells"] = colspan_count*1.0/tdcount
 				features["ratio_of_colons_to_cells"] = colon_count*1.0/tdcount
+				features["avg_cell_len"] = avg_cell_len*1.0/tdcount
+				features["avg_row_len"] = mean(row_len_list)
+				features["avg_row_len_dev"] = avg_row_len_dev*1.0/max(len_row, 1)
 
-				avg_cell_len = 0
+				avg_col_len = 0
+				avg_col_len_dev = 0
 				no_of_cols_containing_num = 0
 				no_of_cols_empty = 0
 
@@ -170,14 +197,17 @@ def table_extract(html_doc):
 
 					for key, value in col_data.iteritems():
 						whole_col = ''.join(value)
-						avg_cell_len += float("%.2f" % mean([len(x) for x in value]))
+						# avg_cell_len += float("%.2f" % mean([len(x) for x in value]))
+						avg_col_len += sum([len(x) for x in value])
+						avg_col_len_dev += pstdev([len(x) for x in value])
 						no_of_cols_containing_num += 1 if contains_digits(whole_col) is True else 0
 						# features["column_" + str(key) + "_is_only_num"] = whole_col.isdigit()
 						no_of_cols_empty += 1 if (whole_col == '') is True else 0
 				# To avoid division by zero
 				if max_tdcount == 0:
 					max_tdcount = 1
-				features["avg_cell_len"] = avg_cell_len*1.0/max_tdcount
+				features["avg_col_len"] = avg_col_len*1.0/max_tdcount
+				features["avg_col_len_dev"] = avg_col_len_dev/max_tdcount
 				features["no_of_cols_containing_num"] = no_of_cols_containing_num
 				features["no_of_cols_empty"] = no_of_cols_empty
 				data_table["features"] = features
