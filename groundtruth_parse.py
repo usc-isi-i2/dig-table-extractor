@@ -114,14 +114,7 @@ def output_tables(file_in, file_out):
 		for table in tables:
 			rows = table["rows"]
 			outfile.write("CDR: " + line['_id'] + "<br>")
-			outfile.write('<table>\n')
-			for row in rows:
-				outfile.write('<tr>\n')
-				cells = row["cells"]
-				for cell in cells:
-					outfile.write(cell["cell"])
-					outfile.write('\n')
-				outfile.write('</tr>\n')
+			outfile.write(table["html"])
 			features = table["features"]
 			for key, val in features.iteritems():
 				outfile.write(key + ': ' + str(val))
