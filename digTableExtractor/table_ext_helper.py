@@ -212,9 +212,33 @@ def table_extract(html_doc):
 				features["no_of_cols_empty"] = no_of_cols_empty
 				data_table["features"] = features
 				data_table["rows"] = row_list
+				table_rep = gen_html(row_list)
+				fingerprint = create_fingerprint(table_rep)
+				data_table["fingerprint"] = fingerprint
+				data_table['html'] = table_rep
 				dict["tables"].append(data_table)
 		return dict
 
+
+def create_fingerprint(table):
+	table = str(table)
+	all_tokens = list(set(re.split('[^\w]+',table)))
+	all_tokens = sorted(all_tokens)
+	fingerprint = '-'.join(all_tokens)
+	return fingerprint
+
+
+def gen_html(row_list):
+	""" Return html table string from a list of data rows """
+	table = "<table>"
+	for row in row_list:
+		table += "<tr>"
+		cells = row["cells"]
+		for cell in cells:
+			table += str(cell["cell"])
+		table += "</tr>"
+	table += "</table>"
+	return table
 
 def table_decompose(html_doc):
 	soup = BeautifulSoup(html_doc, 'html.parser')
