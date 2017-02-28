@@ -21,7 +21,7 @@ all_labels = {
 
 def train_classifier(train_features, train_labels):
     cl = RandomForestClassifier(3)
-    cl = cl.fit(features, Y)
+    cl = cl.fit(train_features, train_labels)
     return cl
 
 def predict_labels(cl, features):
