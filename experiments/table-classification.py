@@ -1,9 +1,12 @@
 __author__ = 'majid'
 import json
 from jsonpath_rw import jsonpath, parse
+import StringIO
 import sklearn
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import cross_val_score, KFold
+from sklearn.metrics import accuracy_score, make_scorer, \
+    classification_report, confusion_matrix, f1_score
+from sklearn.model_selection import cross_val_score, KFold, train_test_split
 import numpy as np
 
 all_labels = {
@@ -15,6 +18,27 @@ all_labels = {
     'LIST': 5,
     'LAYOUT': 6
 }
+
+def train_classifier(train_features, train_labels):
+    cl = RandomForestClassifier(3)
+    cl = cl.fit(features, Y)
+    return cl
+
+def predict_labels(cl, features):
+    return cl.predict(features)
+
+def analyze_classification(true_y, y, keys):
+    res = StringIO.StringIO()
+    for i, (x1, x2) in enumerate(zip(true_y, y)):
+        if x1 != x2:
+            res.write('true lab: ' + str(x1) +
+                      ' | predicted: ' + str(x2) +
+                      ' | (cdr_id, fingerprint): ' + str(keys[i]) + '\n')
+    return res
+
+def score_classification(clf, true_y, y):
+    scorer = classification_report
+    return scorer(true_y, y)
 
 if __name__ == '__main__':
     groundtruth_file = open('/Users/majid/Desktop/50-pages-groundtruth.jl')
@@ -30,7 +54,7 @@ if __name__ == '__main__':
             groundtruth[x['cdr_id']][x['fingerprint']] = x
         else:
             groundtruth[x['cdr_id']] = {x['fingerprint']: x}
-    print(groundtruth)
+    # print(groundtruth)
 
 
     tables = []
@@ -43,6 +67,7 @@ if __name__ == '__main__':
             tables.append(t)
     features = []
     Y = []
+    ids = []
     for t in tables:
         cdr_id = t['cdr_id']
         fingerprint = t['fingerprint']
@@ -55,7 +80,6 @@ if __name__ == '__main__':
             if l not in all_labels:
                 continue
             ff = [x[1] for x in sorted(t['features'].items(), key=lambda x: x[0])]
-            print(t['id'], ff)
             for i,f in enumerate(ff):
                 if f == True:
                     ff[i] = 1
@@ -63,15 +87,33 @@ if __name__ == '__main__':
                     ff[i] = 0
             features.append(ff)
             Y.append(l)
+            ids.append((cdr_id, fingerprint))
 
     input_file.close()
-    Y = [all_labels[x] for x in Y if x in all_labels]
-    print([len(x) for x in features])
-    print(Y)
-    print(sklearn.__version__)
+    # Y = [all_labels[x] for x in Y if x in all_labels]
+    # print([len(x) for x in features])
+
+    # print(sklearn.__version__)
     Y = np.array(Y)
     features = np.matrix(features)
-    rf_cl = RandomForestClassifier(10)
-    score = cross_val_score(rf_cl, features, Y, cv=5).mean()
-    print score
+
+    X_train, X_test, y_train, y_test = train_test_split(features, Y,
+                                                        train_size=0.75,
+                                                        random_state=42)
+
+
+    cl = train_classifier(X_train, y_train)
+
+    y_pred = predict_labels(cl, X_test)
+    print score_classification(cl, y_test, y_pred)
+    print('################################# detailed report #################')
+    print analyze_classification(y_test, y_pred, ids).getvalue()
+
+    # print y_pred
+    # print confusion_matrix(y_test, y_pred)
+    # print classification_report(y_test, y_pred)
+    # print scorer(rf_cl, features, Y)
+    # score = cross_val_score(rf_cl, features, Y, cv=2).mean()
+    # print score
+
 
