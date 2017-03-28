@@ -1,5 +1,6 @@
 __author__ = 'majid'
 import json
+import re
 from jsonpath_rw import jsonpath, parse
 
 
@@ -11,7 +12,7 @@ def extract_cell_features(cell):
     cell_text = [match.value for match in cell_text_path.find(cell)]
     cell_data = [match.value for match in cell_extraction.find(cell)]
     for text in cell_text:
-        if text.lower() in all_attr_tags:
+        if any([re.sub('[^\w]', '', x) in all_attr_tags for x in text.lower().split(':')]):
             extractors_suceeded.add('SEMANTIC_TYPE')
             features[0] = 1
     for fields in cell_data:
@@ -36,8 +37,8 @@ def add_arrays(a,b):
 all_extractors = {}
 tags = open("HT-attribute-labels.json")
 all_attr_tags = json.load(tags)
-in_file = open("/Users/majid/Desktop/50-pages-out.jl")
-out_file = open("/Users/majid/Desktop/50-pages-out-features.jl", 'w')
+in_file = open("50-pages-out.jl")
+out_file = open("50-pages-out-features.jl", 'w')
 tables_jsonpath = parse('extractors.tables[*].text[*].result.value.tables[*]')
 counter = 0
 for line in in_file:
@@ -50,8 +51,14 @@ for line in in_file:
         row_features_aggr = []
         num_cols = table['features']['max_cols_in_a_row']
         num_rows = table['features']['no_of_rows']
-        if num_cols == 0 or num_rows == 0:
-            continue
+
+        # table['features'] = {}
+        # if num_cols == 0 or num_rows == 0:
+        #     table['features']['max_sem_type_names_col'] = 0
+        #     table['features']['max_sem_type_names_row'] = 0
+        #     table['features']['avg_recognized_value_row'] = 0
+        #     table['features']['avg_recognized_value_col'] = 0
+        #     continue
         print(num_cols,num_rows)
         col_features_aggr = [[0 for x in range(10)] for xx in range(num_cols)]
         for row_i, row in enumerate(table['rows']):
@@ -66,10 +73,10 @@ for line in in_file:
             # print('###########')
         # table['features']['row_aggr_features'] = row_features_aggr
         # table['features']['col_aggr_features'] = col_features_aggr
-        table['features']['max_sem_type_names_col'] = max([x[0] for x in col_features_aggr])
-        table['features']['max_sem_type_names_row'] = max([x[0] for x in row_features_aggr])
-        table['features']['avg_recognized_value_row'] = sum([len(filter(lambda x: x>0, xx)) for xx in row_features_aggr])/num_rows
-        table['features']['avg_recognized_value_col'] = sum([len(filter(lambda x: x>0, xx)) for xx in row_features_aggr])/num_cols
+        # table['features']['max_sem_type_names_col'] = max([x[0] for x in col_features_aggr])
+        # table['features']['max_sem_type_names_row'] = max([x[0] for x in row_features_aggr])
+        # table['features']['avg_recognized_value_row'] = float(sum([len(filter(lambda x: x>0, xx)) for xx in row_features_aggr]))/float(num_rows)
+        # table['features']['avg_recognized_value_col'] = float(sum([len(filter(lambda x: x>0, xx)) for xx in row_features_aggr]))/float(num_cols)
         print(table['features'])
         print('$$$$$$$$$$$$$$$$$$$$$$$$$')
                 # print(cell)
